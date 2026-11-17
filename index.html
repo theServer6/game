@@ -3,162 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Realistic Tab Title -->
     <title>Millennium Prize Problems | Dept. of Mathematics</title>
     <style>
-        body {
-            font-family: "Georgia", "Times New Roman", serif;
-            background-color: #f8f9fa;
-            color: #202122;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #eaecf0;
-            border-bottom: 1px solid #a2a9b1;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 {
-            font-size: 1.5rem;
-            margin: 0;
-            font-weight: normal;
-        }
-        .secret-trigger {
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: #54595d;
-            user-select: none;
-        }
-        .content {
-            max-width: 850px;
-            margin: 30px auto;
-            background: #ffffff;
-            padding: 30px 40px;
-            border: 1px solid #a2a9b1;
-        }
-        h2 {
-            border-bottom: 1px solid #a2a9b1;
-            padding-bottom: 5px;
-            font-weight: normal;
-            margin-top: 30px;
-        }
-        .formula-box {
-            background-color: #f8f9fa;
-            border: 1px solid #eaecf0;
-            padding: 12px;
-            font-family: "Courier New", monospace;
-            margin: 15px 0;
-            text-align: center;
-        }
-        a {
-            color: #0645ad;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        /* Hidden Game Section */
-        #game-section {
-            display: none;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px dashed #a2a9b1;
-            text-align: center;
-        }
-        .game-container {
-            margin: 15px auto;
-            max-width: 100%;
-        }
-        iframe {
-            width: 100%;
-            height: 600px;
-            border: 2px solid #202122;
-            border-radius: 4px;
-        }
-        .controls-hint {
-            font-family: Arial, sans-serif;
-            font-size: 0.85rem;
-            color: #54595d;
-        }
+        body { font-family: "Georgia", serif; background-color: #f8f9fa; color: #202122; line-height: 1.6; margin: 0; padding: 0; }
+        header { background-color: #eaecf0; border-bottom: 1px solid #a2a9b1; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.5rem; margin: 0; font-weight: normal; }
+        .secret-trigger { cursor: pointer; font-size: 1.2rem; color: #54595d; user-select: none; }
+        .content { max-width: 850px; margin: 30px auto; background: #ffffff; padding: 30px 40px; border: 1px solid #a2a9b1; }
+        h2 { border-bottom: 1px solid #a2a9b1; padding-bottom: 5px; font-weight: normal; margin-top: 30px; }
+        .formula-box { background-color: #f8f9fa; border: 1px solid #eaecf0; padding: 12px; font-family: "Courier New", monospace; margin: 15px 0; text-align: center; }
+        a { color: #0645ad; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        #game-section { display: none; margin-top: 40px; padding-top: 20px; border-top: 2px dashed #a2a9b1; text-align: center; }
+        .selector-bar { margin-bottom: 15px; font-family: Arial, sans-serif; font-size: 0.95rem; }
+        select { padding: 6px 10px; font-size: 0.95rem; border: 1px solid #a2a9b1; border-radius: 4px; background-color: #f8f9fa; }
+        .game-container { margin: 15px auto; max-width: 100%; }
+        iframe { width: 100%; height: 600px; border: 2px solid #202122; border-radius: 4px; }
+        .controls-hint { font-family: Arial, sans-serif; font-size: 0.85rem; color: #54595d; }
     </style>
 </head>
 <body>
-
     <header>
         <h1>List of Mathematical Conundrums of the 21st Century</h1>
-        <!-- Secret trigger: Click the Pi symbol to open/close the game -->
         <span class="secret-trigger" onclick="toggleGame()" title="Constants Reference">&pi;</span>
     </header>
-
     <div class="content">
         <a href="https://google.com">&larr; Back to Index</a>
-
         <h2>1. Navier–Stokes Existence and Smoothness</h2>
-        <p>
-            This is the equation which governs the flow of fluids such as water and air. However, for many decades no proof was found answering the most basic questions one can ask: do solutions exist, and are they unique? Why ask for a proof? Because a proof gives not only certitude, but also understanding.
-        </p>
-        <div class="formula-box">
-            &part;u/&part;t + (u &middot; &nabla;)u = &minus;&nabla;p + &nu;&nabla;&sup2;u + f
-        </div>
-
-        <h2>2. Riemann Hypothesis</h2>
-        <p>
-            The prime number theorem determines the average distribution of the primes. The Riemann hypothesis tells us about the deviation from the average. Formulated in Riemann’s 1859 paper, it asserts that all the ‘non-obvious’ zeros of the zeta function are complex numbers with real part 1/2.
-        </p>
-        <div class="formula-box">
-            &zeta;(s) = &sum; (1 / n<sup>s</sup>) = 0 &rArr; Re(s) = 1/2
-        </div>
-
-        <h2>3. Hodge Conjecture</h2>
-        <p>
-            The answer to this conjecture determines how much of the topology of the solution set of a system of algebraic equations can be defined in terms of further algebraic equations. The Hodge conjecture is known in certain special cases, e.g., when the solution set has dimension less than four. But in dimension four it is unknown.
-        </p>
-
+        <p>This is the equation which governs the flow of fluids such as water and air, addressing whether smooth solutions always exist.</p>
+        <div class="formula-box">&part;u/&part;t + (u &middot; &nabla;)u = &minus;&nabla;p + &nu;&nabla;&sup2;u + f</div>
+        
         <!-- Hidden Game Area -->
         <div id="game-section">
-            <h3 style="font-family: Arial, sans-serif;">Interactive Simulation Module (Peakness)</h3>
+            <h3 style="font-family: Arial, sans-serif;">Interactive Simulation Module</h3>
+            <div class="selector-bar">
+                <label for="game-select"><strong>Select Simulation Model:</strong></label>
+                <select id="game-select" onchange="changeGame()">
+                    <option value="https://cloudfront.net">Model A: Peakness</option>
+                    <option value="https://example.com">Model B: Second Game Name</option>
+                    <!-- ADD MORE GAMES HERE -->
+                </select>
+            </div>
             <p class="controls-hint">Press <strong>ESC</strong> at any time to immediately hide this module.</p>
             <div class="game-container">
-                <iframe id="game-frame" src="https://d11jzht7mj96rr.cloudfront.net/" allowfullscreen></iframe>
+                <iframe id="game-frame" src="" allowfullscreen></iframe>
             </div>
         </div>
     </div>
-
     <script>
-        const gameUrl = "https://d11jzht7mj96rr.cloudfront.net/";
         const gameSection = document.getElementById("game-section");
         const gameFrame = document.getElementById("game-frame");
-
+        const gameSelect = document.getElementById("game-select");
         function toggleGame() {
             if (gameSection.style.display === "none" || gameSection.style.display === "") {
                 gameSection.style.display = "block";
-                // Only load the game when opened so it doesn't slow down the page or play audio early
-                if (!gameFrame.src) {
-                    gameFrame.src = gameUrl;
-                }
+                gameFrame.src = gameSelect.value;
                 gameSection.scrollIntoView({ behavior: "smooth" });
-            } else {
-                hideGame();
-            }
+            } else { hideGame(); }
         }
-
-        function hideGame() {
-            gameSection.style.display = "none";
-            gameFrame.src = ""; // Unloads the game so audio stops immediately
-            window.scrollTo(0, 0);
-        }
-
-        // Panic button: Press 'Escape' to hide the game instantly
-        document.addEventListener("keydown", function(event) {
-            if (event.key === "Escape") {
-                hideGame();
-            }
-        });
+        function changeGame() { gameFrame.src = gameSelect.value; }
+        function hideGame() { gameSection.style.display = "none"; gameFrame.src = ""; window.scrollTo(0, 0); }
+        document.addEventListener("keydown", function(event) { if (event.key === "Escape") { hideGame(); } });
     </script>
-
 </body>
 </html>
