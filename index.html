@@ -1,89 +1,268 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iframe Switcher</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-  /* Full-screen iframe */
-  iframe {
-    display: block;
-    width: 100vw;
-    height: 100dvh;
-    border: none;
-  }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #111;
+    }
 
-  /* Container for the floating buttons in the top-right corner */
-  #button-container {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 9999;
-    display: flex;
-    gap: 8px;
-  }
+    #pageFrame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: white;
+    }
 
-  /* Shared styling for both buttons */
-  .nav-button {
-    background: rgba(0, 0, 0, 0.25);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 18px;
-    font-family: serif;
-    cursor: pointer;
-  }
+    .controls {
+      position: fixed;
+      z-index: 10;
+      top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
-  .nav-button:hover {
-    background: rgba(0, 0, 0, 0.6);
-  }
-</style>
+    #startControls {
+      left: 8px;
+    }
+
+    #secondaryControls {
+      right: 8px;
+    }
+
+    /* Compact controls: roughly half the padding/font size of typical buttons. */
+    button {
+      min-height: 22px;
+      padding: 4px 6px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      background: rgba(25, 25, 25, 0.9);
+      color: #fff;
+      font: 10px/1 Arial, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    button:hover {
+      background: rgba(65, 65, 65, 0.97);
+    }
+
+    button:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+
+    button.active {
+      background: #1769aa;
+      border-color: #9bd1ff;
+    }
+
+    #backButton {
+      background: #8b2525;
+    }
+
+    #backButton:hover {
+      background: #ad3030;
+    }
+
+    @media (max-width: 520px) {
+      .controls {
+        gap: 3px;
+        top: 6px;
+      }
+
+      #startControls {
+        left: 6px;
+      }
+
+      #secondaryControls {
+        right: 6px;
+      }
+
+      button {
+        padding: 4px 5px;
+        font-size: 9px;
+        min-height: 21px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <iframe
+    id="pageFrame"
+    title="Main website content"
+    allow="fullscreen; autoplay; clipboard-read; clipboard-write"
+  ></iframe>
 
-  <!-- Floating buttons container -->
-  <div id="button-container">
-    <button class="nav-button" onclick="loadSite('science')" title="Totally Science">&pi;</button>
-    <button class="nav-button" onclick="loadSite('custom')" title="Custom Site">&sect;</button>
+  <!-- These three buttons choose the remembered starting page. -->
+  <div class="controls" id="startControls">
+    <button type="button" data-start="A">A</button>
+    <button type="button" data-start="B">B</button>
+    <button type="button" data-start="C">C</button>
   </div>
 
-  <!-- Main full-screen iframe starting on Mathletics -->
-  <iframe id="main-frame" src="https://mathletics.com" title="Mathletics"></iframe>
+  <!-- These buttons open the two secondary pages. Escape / Back returns to the selected start page. -->
+  <div class="controls" id="secondaryControls">
+    <button type="button" data-secondary="one">Page 1</button>
+    <button type="button" data-secondary="two">Page 2</button>
+    <button type="button" id="backButton" title="Return to the selected starting page (Escape)">Escape / Back</button>
+  </div>
 
   <script>
-    const urls = {
-      home: "https://mathletics.com",
-      science: "https://d11jzht7mj96rr.cloudfront.net/",
-      custom: "" // <-- Paste your second URL inside these quotes later
+    // ==========================================================
+    // PUT YOUR FIVE WEBSITE LINKS IN THESE TWO OBJECTS.
+    // ==========================================================
+    const START_PAGES = {
+      A: "https://mathletics.com.au",
+      B: "https://docs.google.com/document/d/e/2PACX-1vTxnaIsAcAU9iJ5WMOV3NvmUMta8xXUROwkHKIjKKR61MeQDfbu_RviCyePdckIADUAaKy_x-ZYNLaG/",
+      C: "https://detnsw.net"
     };
 
-    let currentView = "home";
+    const SECONDARY_PAGES = {
+      one: "https://d11jzht7mj96rr.cloudfront.net",
+      two: "https://example.org"
+    };
 
-    function loadSite(target) {
-      const frame = document.getElementById("main-frame");
+    // The selected starting page is remembered in this browser.
+    const STORAGE_KEY = "iframeSwitcher.selectedStartPage";
+    const frame = document.getElementById("pageFrame");
+    const backButton = document.getElementById("backButton");
+    const startButtons = [...document.querySelectorAll("[data-start]")];
+    const secondaryButtons = [...document.querySelectorAll("[data-secondary]")];
 
-      // If you click the button for the site you are already on, go back to Mathletics
-      if (currentView === target) {
-        frame.src = urls.home;
-        currentView = "home";
-        return;
+    function getSavedStartPage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved && Object.prototype.hasOwnProperty.call(START_PAGES, saved)) {
+          return saved;
+        }
+      } catch (error) {
+        // The site still works if browser storage is unavailable.
       }
-
-      // Check if the URL is empty before switching
-      if (!urls[target]) {
-        alert("No URL set for this button yet!");
-        return;
-      }
-
-      frame.src = urls[target];
-      currentView = target;
+      return "A";
     }
-  </script>
 
+    let selectedStartPage = getSavedStartPage();
+    let currentView = "start"; // Either "start" or "secondary".
+
+    function saveSelectedStartPage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, selectedStartPage);
+      } catch (error) {
+        // Storage may be disabled by the browser; navigation still works.
+      }
+    }
+
+    function updateStartButtonStyles() {
+      startButtons.forEach((button) => {
+        const isSelected = button.dataset.start === selectedStartPage;
+        button.classList.toggle("active", isSelected);
+        button.setAttribute("aria-pressed", String(isSelected));
+      });
+    }
+
+    function loadSelectedStartPage() {
+      currentView = "start";
+      frame.src = START_PAGES[selectedStartPage];
+      updateStartButtonStyles();
+    }
+
+    function chooseStartPage(pageKey) {
+      if (!Object.prototype.hasOwnProperty.call(START_PAGES, pageKey)) return;
+
+      selectedStartPage = pageKey;
+      saveSelectedStartPage();
+      updateStartButtonStyles();
+
+      // If already viewing a start page, switch to the newly chosen one now.
+      // If viewing a secondary page, keep it open but change where Back/Escape returns.
+      if (currentView === "start") {
+        frame.src = START_PAGES[selectedStartPage];
+      }
+    }
+
+    function openSecondaryPage(pageKey) {
+      if (!Object.prototype.hasOwnProperty.call(SECONDARY_PAGES, pageKey)) return;
+      currentView = "secondary";
+      frame.src = SECONDARY_PAGES[pageKey];
+    }
+
+    function returnToStartPage() {
+      // Always return to the most recently selected starting page.
+      loadSelectedStartPage();
+    }
+
+    startButtons.forEach((button) => {
+      button.addEventListener("click", () => chooseStartPage(button.dataset.start));
+    });
+
+    secondaryButtons.forEach((button) => {
+      button.addEventListener("click", () => openSecondaryPage(button.dataset.secondary));
+    });
+
+    backButton.addEventListener("click", returnToStartPage);
+
+    // ESCAPE METHOD 1:
+    // Works whenever the main/parent website itself has keyboard focus.
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && currentView === "secondary") {
+        event.preventDefault();
+        returnToStartPage();
+      }
+    }, true);
+
+    // ESCAPE METHOD 2:
+    // If the displayed page is same-origin with this page, attach a key listener
+    // directly to its document. This works even while that iframe has focus.
+    frame.addEventListener("load", () => {
+      try {
+        const innerDocument = frame.contentDocument;
+        if (innerDocument) {
+          innerDocument.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && currentView === "secondary") {
+              event.preventDefault();
+              returnToStartPage();
+            }
+          }, true);
+        }
+      } catch (error) {
+        // Cross-origin pages cannot be inspected by the parent page.
+      }
+    });
+
+    // ESCAPE METHOD 3:
+    // A cross-origin page you do not control cannot normally pass keyboard events
+    // to this page. If an external page voluntarily sends the message below,
+    // this listener will return to the selected starting page.
+    // The source check ensures the message must come from this iframe.
+    window.addEventListener("message", (event) => {
+      if (event.source !== frame.contentWindow) return;
+
+      if (event.data && event.data.type === "iframe-switcher:escape") {
+        if (currentView === "secondary") {
+          returnToStartPage();
+        }
+      }
+    });
+
+    // Display the saved starting page when the website first opens.
+    updateStartButtonStyles();
+    loadSelectedStartPage();
+  </script>
 </body>
 </html>
+
