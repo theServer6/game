@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iframe Switcher</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       width: 100%;
@@ -18,11 +16,13 @@
       background: #111;
     }
 
+    /* Leave a 12px strip at the bottom for focusing the parent page. */
     #pageFrame {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
       width: 100%;
-      height: 100%;
+      height: calc(100% - 12px);
       border: 0;
       background: white;
     }
@@ -36,68 +36,59 @@
       gap: 4px;
     }
 
-    #startControls {
-      left: 8px;
-    }
+    #startControls { left: 8px; }
+    #secondaryControls { right: 8px; }
 
-    #secondaryControls {
-      right: 8px;
-    }
-
-    /* Compact controls: roughly half the padding/font size of typical buttons. */
     button {
       min-height: 22px;
       padding: 4px 6px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 4px;
-      background: rgba(25, 25, 25, 0.9);
+      background: rgba(25, 25, 25, 0.92);
       color: #fff;
       font: 10px/1 Arial, sans-serif;
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      white-space: nowrap;
     }
 
-    button:hover {
-      background: rgba(65, 65, 65, 0.97);
-    }
-
-    button:focus-visible {
-      outline: 2px solid white;
-      outline-offset: 2px;
-    }
+    button:hover { background: rgba(65, 65, 65, 0.97); }
+    button:focus-visible { outline: 2px solid white; outline-offset: 2px; }
 
     button.active {
       background: #1769aa;
       border-color: #9bd1ff;
     }
 
-    #backButton {
-      background: #8b2525;
+    #backButton { background: #8b2525; }
+    #backButton:hover { background: #ad3030; }
+
+    /* This button is outside the iframe. Click it, then press physical Esc. */
+    #keyboard-strip {
+      position: fixed;
+      z-index: 20;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 12px;
+      min-height: 12px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: #555;
+      box-shadow: none;
+      font-size: 0;
+      cursor: pointer;
     }
 
-    #backButton:hover {
-      background: #ad3030;
-    }
+    #keyboard-strip:hover { background: #777; }
+    #keyboard-strip:focus-visible { outline: 2px solid white; outline-offset: -2px; }
 
     @media (max-width: 520px) {
-      .controls {
-        gap: 3px;
-        top: 6px;
-      }
-
-      #startControls {
-        left: 6px;
-      }
-
-      #secondaryControls {
-        right: 6px;
-      }
-
-      button {
-        padding: 4px 5px;
-        font-size: 9px;
-        min-height: 21px;
-      }
+      .controls { gap: 3px; top: 6px; }
+      #startControls { left: 6px; }
+      #secondaryControls { right: 6px; }
+      button:not(#keyboard-strip) { padding: 4px 5px; font-size: 9px; min-height: 21px; }
     }
   </style>
 </head>
@@ -108,74 +99,71 @@
     allow="fullscreen; autoplay; clipboard-read; clipboard-write"
   ></iframe>
 
-  <!-- These three buttons choose the remembered starting page. -->
-  <div class="controls" id="startControls">
+  <nav class="controls" id="startControls" aria-label="Choose starting page">
     <button type="button" data-start="A">A</button>
     <button type="button" data-start="B">B</button>
     <button type="button" data-start="C">C</button>
-  </div>
+  </nav>
 
-  <!-- These buttons open the two secondary pages. Escape / Back returns to the selected start page. -->
-  <div class="controls" id="secondaryControls">
+  <nav class="controls" id="secondaryControls" aria-label="Open secondary page">
     <button type="button" data-secondary="one">Page 1</button>
     <button type="button" data-secondary="two">Page 2</button>
     <button type="button" id="backButton" title="Return to the selected starting page (Escape)">Escape / Back</button>
-  </div>
+  </nav>
+
+  <!-- Click this narrow strip to move keyboard focus back to this page. -->
+  <button
+    type="button"
+    id="keyboard-strip"
+    aria-label="Click here to focus the switcher, then press Escape to return to the starting page"
+    title="Click here, then press the Esc key to return to your selected starting page"
+  ></button>
 
   <script>
     // ==========================================================
-    // PUT YOUR FIVE WEBSITE LINKS IN THESE TWO OBJECTS.
+    // REPLACE THESE FIVE EXAMPLE ADDRESSES WITH YOUR OWN LINKS.
     // ==========================================================
     const START_PAGES = {
-      A: "https://mathletics.com.au",
-      B: "https://docs.google.com/document/d/e/2PACX-1vTxnaIsAcAU9iJ5WMOV3NvmUMta8xXUROwkHKIjKKR61MeQDfbu_RviCyePdckIADUAaKy_x-ZYNLaG/",
-      C: "https://detnsw.net"
+      A: "https://example.com",
+      B: "https://example.org",
+      C: "https://example.net"
     };
 
     const SECONDARY_PAGES = {
-      one: "https://d11jzht7mj96rr.cloudfront.net",
+      one: "https://example.com",
       two: "https://example.org"
     };
+    // ==========================================================
 
-    // The selected starting page is remembered in this browser.
     const STORAGE_KEY = "iframeSwitcher.selectedStartPage";
     const frame = document.getElementById("pageFrame");
     const backButton = document.getElementById("backButton");
+    const keyboardStrip = document.getElementById("keyboard-strip");
     const startButtons = [...document.querySelectorAll("[data-start]")];
     const secondaryButtons = [...document.querySelectorAll("[data-secondary]")];
 
     function getSavedStartPage() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved && Object.prototype.hasOwnProperty.call(START_PAGES, saved)) {
-          return saved;
-        }
+        if (saved && Object.prototype.hasOwnProperty.call(START_PAGES, saved)) return saved;
       } catch (error) {
-        // The site still works if browser storage is unavailable.
+        // Navigation still works if browser storage is unavailable.
       }
       return "A";
     }
 
     let selectedStartPage = getSavedStartPage();
-    let currentView = "start"; // Either "start" or "secondary".
-
-    function saveSelectedStartPage() {
-      try {
-        localStorage.setItem(STORAGE_KEY, selectedStartPage);
-      } catch (error) {
-        // Storage may be disabled by the browser; navigation still works.
-      }
-    }
+    let currentView = "start";
 
     function updateStartButtonStyles() {
       startButtons.forEach((button) => {
-        const isSelected = button.dataset.start === selectedStartPage;
-        button.classList.toggle("active", isSelected);
-        button.setAttribute("aria-pressed", String(isSelected));
+        const selected = button.dataset.start === selectedStartPage;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-pressed", String(selected));
       });
     }
 
-    function loadSelectedStartPage() {
+    function showStartPage() {
       currentView = "start";
       frame.src = START_PAGES[selectedStartPage];
       updateStartButtonStyles();
@@ -183,16 +171,16 @@
 
     function chooseStartPage(pageKey) {
       if (!Object.prototype.hasOwnProperty.call(START_PAGES, pageKey)) return;
-
       selectedStartPage = pageKey;
-      saveSelectedStartPage();
+      try {
+        localStorage.setItem(STORAGE_KEY, selectedStartPage);
+      } catch (error) {
+        // The selected page remains active for this visit.
+      }
       updateStartButtonStyles();
 
-      // If already viewing a start page, switch to the newly chosen one now.
-      // If viewing a secondary page, keep it open but change where Back/Escape returns.
-      if (currentView === "start") {
-        frame.src = START_PAGES[selectedStartPage];
-      }
+      // While a secondary page is open, change the return destination without closing it.
+      if (currentView === "start") showStartPage();
     }
 
     function openSecondaryPage(pageKey) {
@@ -202,8 +190,8 @@
     }
 
     function returnToStartPage() {
-      // Always return to the most recently selected starting page.
-      loadSelectedStartPage();
+      if (currentView !== "secondary") return;
+      showStartPage();
     }
 
     startButtons.forEach((button) => {
@@ -216,18 +204,21 @@
 
     backButton.addEventListener("click", returnToStartPage);
 
-    // ESCAPE METHOD 1:
-    // Works whenever the main/parent website itself has keyboard focus.
-    document.addEventListener("keydown", (event) => {
+    // Clicking the strip puts focus on a button belonging to this parent page.
+    // The parent can then receive the physical Escape key while the iframe is visible.
+    keyboardStrip.addEventListener("pointerdown", () => {
+      keyboardStrip.focus({ preventScroll: true });
+    });
+
+    // Escape works when keyboard focus is on this parent page (for example, the strip).
+    window.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && currentView === "secondary") {
         event.preventDefault();
         returnToStartPage();
       }
     }, true);
 
-    // ESCAPE METHOD 2:
-    // If the displayed page is same-origin with this page, attach a key listener
-    // directly to its document. This works even while that iframe has focus.
+    // Same-origin iframe pages can be listened to directly.
     frame.addEventListener("load", () => {
       try {
         const innerDocument = frame.contentDocument;
@@ -244,25 +235,28 @@
       }
     });
 
-    // ESCAPE METHOD 3:
-    // A cross-origin page you do not control cannot normally pass keyboard events
-    // to this page. If an external page voluntarily sends the message below,
-    // this listener will return to the selected starting page.
-    // The source check ensures the message must come from this iframe.
+    // A cross-origin page can return on Escape only if it voluntarily sends this message.
     window.addEventListener("message", (event) => {
       if (event.source !== frame.contentWindow) return;
-
       if (event.data && event.data.type === "iframe-switcher:escape") {
-        if (currentView === "secondary") {
-          returnToStartPage();
-        }
+        returnToStartPage();
       }
     });
 
-    // Display the saved starting page when the website first opens.
+    // Open the previously selected starting page when the switcher loads.
     updateStartButtonStyles();
-    loadSelectedStartPage();
+    showStartPage();
   </script>
 </body>
 </html>
 
+<!--
+OPTIONAL: Add this to a cross-origin secondary page that you control:
+
+<script>
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      window.parent.postMessage({ type: "iframe-switcher:escape" }, "*");
+    }
+  }, true);
+</script>
