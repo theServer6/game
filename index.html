@@ -1,262 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iframe Switcher</title>
-  <style>
-    * { box-sizing: border-box; }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background: #111;
-    }
-
-    /* Leave a 12px strip at the bottom for focusing the parent page. */
-    #pageFrame {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: calc(100% - 16px);
-      border: 0;
-      background: white;
-    }
-
-    .controls {
-      position: fixed;
-      z-index: 10;
-      top: 8px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    #startControls { left: 8px; }
-    #secondaryControls { right: 8px; }
-
-    button {
-      min-height: 22px;
-      padding: 4px 6px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 4px;
-      background: rgba(25, 25, 25, 0.92);
-      color: #fff;
-      font: 10px/1 Arial, sans-serif;
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-      white-space: nowrap;
-    }
-
-    button:hover { background: rgba(65, 65, 65, 0.97); }
-    button:focus-visible { outline: 2px solid white; outline-offset: 2px; }
-
-    button.active {
-      background: #1769aa;
-      border-color: #9bd1ff;
-    }
-
-    #backButton { background: #8b2525; }
-    #backButton:hover { background: #ad3030; }
-
-    /* This button is outside the iframe. Click it, then press physical Esc. */
-    #keyboard-strip {
-      position: fixed;
-      z-index: 20;
-      left: 0;
-      bottom: 0;
-      width: 100%;
-      height: 16px;
-      min-height: 16px;
-      padding: 0;
-      border: 0;
-      border-radius: 0;
-      background: #555;
-      box-shadow: none;
-      font-size: 0;
-      cursor: pointer;
-    }
-
-    #keyboard-strip:hover { background: #777; }
-    #keyboard-strip:focus-visible { outline: 2px solid white; outline-offset: -2px; }
-
-    @media (max-width: 520px) {
-      .controls { gap: 3px; top: 6px; }
-      #startControls { left: 6px; }
-      #secondaryControls { right: 6px; }
-      button:not(#keyboard-strip) { padding: 4px 5px; font-size: 9px; min-height: 21px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikepedia</title>
+    <style>
+        body {
+            font-family: sans-serif;;
+            background-color: white;
+            text-align: left;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-container {
+            margin: 20px auto;
+            max-width: 12000px;
+        }
+        iframe {
+            width: 100%;
+            height: 1200px;
+            border: 3px solid #4CAF50;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
-  <iframe
-    id="pageFrame"
-    title="Main website content"
-    allow="fullscreen; autoplay; clipboard-read; clipboard-write"
-  ></iframe>
+<h1> List of Mathematical Connundrums of the 21st Century</h1>
+<hr><br><br><br><br>
+<a style="text-align: left;" href="https://google.com">Back</a>
+<br><br>
+<h2>Navier-Stokes Equation</h2>
+</h4>This is the equation which governs the flow of fluids such as water and air. However, for many decades no proof was found answering the most basic questions one can ask: do solutions exist, and are they unique? Why ask for a proof? Because a proof gives not only certitude, but also understanding.</h4>
+<hr><br><br>
+<h2>Riemann Hypothesis</h2>
+<h4>The prime number theorem determines the average distribution of the primes. The Riemann hypothesis tells us about the deviation from the average. Formulated in Riemann’s 1859 paper, it asserts that all the ‘non-obvious’ zeros of the zeta function are complex numbers with real part 1/2.</h4>
+<hr><br><br>
+<h2>Hodge Conjecture</h2>
+<h4>The answer to this conjecture determines how much of the topology of the solution set of a system of algebraic equations can be defined in terms of further algebraic equations. The Hodge conjecture is known in certain special cases, e.g., when the solution set has dimension less than four. But in dimension four it is unknown.</h4>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <h1>Welcome to My Game Site</h1>
+    <p>Play the embedded game below:</p>
 
-  <nav class="controls" id="startControls" aria-label="Choose starting page">
-    <button type="button" data-start="A">A</button>
-    <button type="button" data-start="B">B</button>
-    <button type="button" data-start="C">C</button>
-  </nav>
-
-  <nav class="controls" id="secondaryControls" aria-label="Open secondary page">
-    <button type="button" data-secondary="one">Page 1</button>
-    <button type="button" data-secondary="two">Page 2</button>
-    <button type="button" id="backButton" title="Return to the selected starting page (Escape)">Escape / Back</button>
-  </nav>
-
-  <!-- Click this narrow strip to move keyboard focus back to this page. -->
-  <button
-    type="button"
-    id="keyboard-strip"
-    aria-label="Click here to focus the switcher, then press Escape to return to the starting page"
-    title="Click here, then press the Esc key to return to your selected starting page"
-  ></button>
-
-  <script>
-    // ==========================================================
-    // REPLACE THESE FIVE EXAMPLE ADDRESSES WITH YOUR OWN LINKS.
-    // ==========================================================
-    const START_PAGES = {
-      A: "https://mathletics.com.au",
-      B: "https://docs.google.com/document/d/e/2PACX-1vTxnaIsAcAU9iJ5WMOV3NvmUMta8xXUROwkHKIjKKR61MeQDfbu_RviCyePdckIADUAaKy_x-ZYNLaG/pub"
-      C: "https://detnsw.net"
-    };
-
-    const SECONDARY_PAGES = {
-      one: "https://d11jzht7mj96rr.cloudfront.net/",
-      two: "https://example.org"
-    };
-    // ==========================================================
-
-    const STORAGE_KEY = "iframeSwitcher.selectedStartPage";
-    const frame = document.getElementById("pageFrame");
-    const backButton = document.getElementById("backButton");
-    const keyboardStrip = document.getElementById("keyboard-strip");
-    const startButtons = [...document.querySelectorAll("[data-start]")];
-    const secondaryButtons = [...document.querySelectorAll("[data-secondary]")];
-
-    function getSavedStartPage() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved && Object.prototype.hasOwnProperty.call(START_PAGES, saved)) return saved;
-      } catch (error) {
-        // Navigation still works if browser storage is unavailable.
-      }
-      return "A";
-    }
-
-    let selectedStartPage = getSavedStartPage();
-    let currentView = "start";
-
-    function updateStartButtonStyles() {
-      startButtons.forEach((button) => {
-        const selected = button.dataset.start === selectedStartPage;
-        button.classList.toggle("active", selected);
-        button.setAttribute("aria-pressed", String(selected));
-      });
-    }
-
-    function showStartPage() {
-      currentView = "start";
-      frame.src = START_PAGES[selectedStartPage];
-      updateStartButtonStyles();
-    }
-
-    function chooseStartPage(pageKey) {
-      if (!Object.prototype.hasOwnProperty.call(START_PAGES, pageKey)) return;
-      selectedStartPage = pageKey;
-      try {
-        localStorage.setItem(STORAGE_KEY, selectedStartPage);
-      } catch (error) {
-        // The selected page remains active for this visit.
-      }
-      updateStartButtonStyles();
-
-      // While a secondary page is open, change the return destination without closing it.
-      if (currentView === "start") showStartPage();
-    }
-
-    function openSecondaryPage(pageKey) {
-      if (!Object.prototype.hasOwnProperty.call(SECONDARY_PAGES, pageKey)) return;
-      currentView = "secondary";
-      frame.src = SECONDARY_PAGES[pageKey];
-    }
-
-    function returnToStartPage() {
-      if (currentView !== "secondary") return;
-      showStartPage();
-    }
-
-    startButtons.forEach((button) => {
-      button.addEventListener("click", () => chooseStartPage(button.dataset.start));
-    });
-
-    secondaryButtons.forEach((button) => {
-      button.addEventListener("click", () => openSecondaryPage(button.dataset.secondary));
-    });
-
-    backButton.addEventListener("click", returnToStartPage);
-
-    // Clicking the strip puts focus on a button belonging to this parent page.
-    // The parent can then receive the physical Escape key while the iframe is visible.
-    keyboardStrip.addEventListener("pointerdown", () => {
-      keyboardStrip.focus({ preventScroll: true });
-    });
-
-    // Escape works when keyboard focus is on this parent page (for example, the strip).
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && currentView === "secondary") {
-        event.preventDefault();
-        returnToStartPage();
-      }
-    }, true);
-
-    // Same-origin iframe pages can be listened to directly.
-    frame.addEventListener("load", () => {
-      try {
-        const innerDocument = frame.contentDocument;
-        if (innerDocument) {
-          innerDocument.addEventListener("keydown", (event) => {
-            if (event.key === "Escape" && currentView === "secondary") {
-              event.preventDefault();
-              returnToStartPage();
-            }
-          }, true);
-        }
-      } catch (error) {
-        // Cross-origin pages cannot be inspected by the parent page.
-      }
-    });
-
-    // A cross-origin page can return on Escape only if it voluntarily sends this message.
-    window.addEventListener("message", (event) => {
-      if (event.source !== frame.contentWindow) return;
-      if (event.data && event.data.type === "iframe-switcher:escape") {
-        returnToStartPage();
-      }
-    });
-
-    // Open the previously selected starting page when the switcher loads.
-    updateStartButtonStyles();
-    showStartPage();
-  </script>
+    <div class="game-container">
+        <!-- Replace the 'src' link with your chosen game's embed URL -->
+        <iframe src="https://d11jzht7mj96rr.cloudfront.net/" allowfullscreen></iframe>
+    </div>
+<div class="game-container">
+<iframe src="https://sites.google.com/view/drive-u-7-home-10/" allowfullscreen></iframe>
+</div>
 </body>
 </html>
-
-<!--
-OPTIONAL: Add this to a cross-origin secondary page that you control:
-
-<script>
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      window.parent.postMessage({ type: "iframe-switcher:escape" }, "*");
-    }
-  }, true);
-</script>
